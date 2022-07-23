@@ -10,7 +10,10 @@ import usersRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 
 import { createRoles, createAdmin} from "./libs/initialSetup";
+import {conn}  from './database';
 
+
+conn();
 const app = express();
 createRoles();
 createAdmin();

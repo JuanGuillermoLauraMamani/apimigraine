@@ -14,8 +14,8 @@
   "keywords": [
     "movie"
   ],
-  "author": "Foram Sojitra",
-  "license": "ISC",
+  "author": "Guille",
+  "license": "NAN",
 
   "devDependencies": {
     "@babel/cli": "^7.11.5",

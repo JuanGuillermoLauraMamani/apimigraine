@@ -17,6 +17,8 @@ export const signUp = async (req, res) => {
       diagnostico:"Sin Diagnostico"
     });
 
+
+    console.log(newUser)
     // checking for roles
     if (req.body.roles) {
       const foundRoles = await Role.find({ name: { $in: roles } });

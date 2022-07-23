@@ -6,10 +6,10 @@ import bcrypt from "bcryptjs";
 export const createRoles = async () => {
   try {
     // Count Documents
-    const count = await Role.estimatedDocumentCount();
-
+    const count = await Role.estimatDocumentCount();
+ 
     // check for existing roles
-    if (count > 0) return;
+    if (count <= 0) {
 
     // Create default Roles
     const values = await Promise.all([
@@ -17,8 +17,10 @@ export const createRoles = async () => {
       new Role({ name: "moderator" }).save(),
       new Role({ name: "admin" }).save(),
     ]);
-
     console.log(values);
+  }
+
+    
   } catch (error) {
     console.error(error);
   }
@@ -27,6 +29,7 @@ export const createRoles = async () => {
 export const createAdmin = async () => {
   // check for an existing admin user
   const user = await User.findOne({ email: "admin@localhost" });
+ 
   // get roles _id
   const roles = await Role.find({ name: { $in: ["admin", "moderator"] } });
 

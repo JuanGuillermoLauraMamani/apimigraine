@@ -15,8 +15,8 @@ import {conn}  from './database';
 
 conn();
 const app = express();
-createRoles();
-createAdmin();
+//createRoles();
+//createAdmin();
 
 // Settings
 app.set("pkg", pkg);

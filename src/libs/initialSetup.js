@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 export const createRoles = async () => {
   try {
     // Count Documents
-    const count = await Role.estimatedDocumentCount();
+    const count =  Role.estimatedDocumentCount();
 
     // check for existing roles
     if (count > 0) return;
@@ -26,9 +26,9 @@ export const createRoles = async () => {
 
 export const createAdmin = async () => {
   // check for an existing admin user
-  const user = await User.findOne({ email: "admin@localhost" });
+  const user =  User.findOne({ email: "admin@localhost" });
   // get roles _id
-  const roles = await Role.find({ name: { $in: ["admin", "moderator"] } });
+  const roles = Role.find({ name: { $in: ["admin", "moderator"] } });
 
   if (!user) {
     // create a new admin user

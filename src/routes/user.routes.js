@@ -4,8 +4,7 @@ const router = Router();
 import * as usersCtrl from "../controllers/user.controller";
 import { authJwt, verifySignup } from "../middlewares";
 
-router.post(
-  "/",
+router.post( "/admin",
   [
     authJwt.verifyToken,
     authJwt.isAdmin,
@@ -15,8 +14,7 @@ router.post(
 );
 
 
-router.get(
-  "/",
+router.get(  "/admin",
   [
     authJwt.verifyToken,
     authJwt.isAdmin,
@@ -25,12 +23,11 @@ router.get(
   usersCtrl.getUsers
 );
 
-router.get("/:userId", usersCtrl.getuserbyid);
+router.get("/:userId", 
+usersCtrl.getuserbyid
+);
 
-
-
-router.put(
-  "/:userId",
+router.put("/:userId",
   [
     authJwt.verifyToken,
     verifySignup.checkDuplicateUsernameOrEmail,
@@ -39,8 +36,6 @@ router.put(
   //usersCtrl.updatesintomas,
   
 );
-
-
 
 
 export default router;

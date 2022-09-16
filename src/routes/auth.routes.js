@@ -4,6 +4,10 @@ const router = Router();
 import * as authCtrl from "../controllers/auth.controller";
 import { verifySignup } from "../middlewares";
 
+
+
+
+
 router.use((req, res, next) => {
   res.header(
     "Access-Control-Allow-Headers",
@@ -25,9 +29,11 @@ router.post("/signin",
     );
 
 /* register api */
-router.post("/registro", 
-  authCtrl.registro
-);
+router.post('/activation', authCtrl.activacion)
 
+
+// Google and Facebook Login
+router.post('/googlelogin', authCtrl.googleController)
+//router.post('/facebooklogin', facebookController)
 
 export default router;

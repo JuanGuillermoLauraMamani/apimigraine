@@ -1,18 +1,17 @@
 import User from "../model/user";
 import Role from "../model/role";
+import Pacient from "../model/pacient";
 import Sintomas from "../model/sintomas";
 import { model } from "mongoose";
 import sintomas from "../model/sintomas";
 
+
 export const createUser = async (req, res) => {
   try {
     const { username, email, password, roles,sintomas,diagnostico } = req.body;
-  
+    console.log(req.body)
     const rolesFound = await Role.find({ name: { $in: roles } });
 
-
-
-    
     // creating a new User
     const user = new User({
       username,
@@ -46,13 +45,10 @@ export const createUser = async (req, res) => {
 };
 
 
-export const getUsers = async (req, res) => {
-  
+
+export const getUsers = async (req, res) => { 
   const users = await User.find();
   return res.json(users);
- 
-
-
 };
 
 export const getuserbyid = async (req, res) => {
@@ -99,5 +95,4 @@ export const updatesintomas=async (req, res) => {
     );
 
 };
-
 

@@ -5,7 +5,7 @@ import helmet from "helmet";
 
 import pkg from "../package.json";
 
-import productRoutes from "./routes/products.routes";
+import pacientRoutes from "./routes/paciente.routes";
 import usersRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 
@@ -45,7 +45,7 @@ app.get("/", (req, res) => {
 });
 
 // Routes
-app.use("/api/products", productRoutes);
+app.use("/api/pacient", pacientRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/auth", authRoutes);
 

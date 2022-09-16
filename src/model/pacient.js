@@ -5,9 +5,10 @@ import { Schema, model } from "mongoose";
 const pacientSchema = new Schema(
   {
     ci:String,
-    name: String,
+    nombre: String,
     sintomas:[],
-    diagnostico:String
+    diagnostico:String,
+    iddoc:String
   },
   {
     versionKey: false,

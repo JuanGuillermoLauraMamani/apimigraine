@@ -4,44 +4,92 @@ import Role from "../model/role";
 import jwt from "jsonwebtoken";
 import config from "../config";
 
+const { google } = require('googleapis')
+const { OAuth2 } = google.auth
+const client = new OAuth2(process.env.GOOGLE_CLIENT)
+
+const _ = require("lodash");
+
+const { OAuth2Client } = require("google-auth-library");
+const fetch = require("node-fetch");
+
+const { validationResult } = require("express-validator");
+
+//const { errorHandler } = require('../helpers/dbErrorHandling');
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.MAIL_KEY);
+
 export const signUp = async (req, res) => {
   try {
     // Getting the Request Body
-    const { username, email, password, roles, sintomas,diagnostico } = req.body;
-    // Creating a new User Object
-    const newUser = new User({
-      username,
-      email,
-      password: await User.encryptPassword(password),
-      sintomas,
-      diagnostico:"Sin Diagnostico"
-    });
+    const { username, email, password, roles, sintomas, diagnostico } =
+      req.body;
+    const errors = validationResult(req);
 
-
-    console.log(newUser)
-    // checking for roles
-    if (req.body.roles) {
-      const foundRoles = await Role.find({ name: { $in: roles } });
-      newUser.roles = foundRoles.map((role) => role._id);
+    if (!errors.isEmpty()) {
+      const firstError = errors.array().map((error) => error.msg)[0];
+      return res.status(422).json({
+        errors: firstError,
+      });
     } else {
-      const role = await Role.findOne({ name: "user" });
-      newUser.roles = [role._id];
+      // Create a token
+      /*
+      const token = jwt.sign(
+        { id: savedUser._id,
+          username: savedUser.username,
+          email: savedUser.email,
+          password:savedUser.password,
+          sintomas:savedUser.sintomas,
+          diagnostico:savedUser.diagnostico
+        }
+        , config.JWT_ACCOUNT_ACTIVATION, 
+        {
+        expiresIn: 86400, // 24 hours
+      });
+*/
+      const token = jwt.sign(
+        {
+          username: username,
+          email: email,
+          password: password
+        }
+        , config.JWT_ACCOUNT_ACTIVATION,
+        {
+          expiresIn: 86400, // 24 hours
+        });
+
+
+      const emailData = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: "Activa tu cuenta",
+        html: `
+                  <h1>Activa tu cuenta haciendo clic en el enlace de abajo</h1>
+                  <p>${process.env.CLIENT_URL}/api/auth/activation/${token}</p>
+                  <hr />
+                  <p>Este correo tiene informacion sensible, borrelo luego de activarlo</p>
+                  <p>${process.env.CLIENT_URL}</p>
+              `,
+      };
+
+      console.log(emailData)
+
+      await sgMail
+        .send(emailData)
+        .then((sent) => {
+          return res.json({
+            message: `Email de activacion enviado a ${email}`,
+          });
+        })
+        .catch((err) => {
+          return res.status(400).json({
+            success: false,
+            errors: err,
+          });
+        });
+
+      //return res.status(200).json({ token, status: true, title: "Registro Successfully." });
     }
-
-    // Saving the User Object in Mongodb
-    const savedUser = await newUser.save();
-
-    // Create a token
-    const token = jwt.sign({ id: savedUser._id }, config.SECRET, {
-      expiresIn: 86400, // 24 hours
-    });
-
-    return res.status(200).json({ token, 
-                                  status: true,
-                                 title: 'Registro Successfully.' });
-
-   
-
   } catch (error) {
     console.log(error);
     return res.status(500).json(error);
@@ -68,65 +116,144 @@ export const signin = async (req, res) => {
         message: "Invalid Password",
       });
 
-    const token = jwt.sign({ id: userFound._id }, config.SECRET, {
+    const token = jwt.sign({ id: userFound._id }, config.JWT_SECRET, {
       expiresIn: 86400, // 24 hours
     });
 
-
-
-    res.json({ token,status: true,id:userFound._id,
-      title: 'Singin Successfully.'});
+    res.json({
+      token,
+      status: true,
+      id: userFound._id,
+      title: "Singin Successfully.",
+    });
   } catch (error) {
     console.log(error);
   }
 };
 
+export const activacion = async (req, res) => {
+  const { token } = req.body;
 
-export const registro=async (req, res) => {
-    try {
-    if (req.body && req.body.username && req.body.password) {
+  if (token) {
+    jwt.verify(token, process.env.JWT_ACCOUNT_ACTIVATION, async (err, decoded) => {
+      if (err) {
+        console.log('Activation error');
+        return res.status(401).json({
+          errors: 'Expired link. Signup again'
+        });
+      } else {
+        const { username, email, password } = jwt.decode(token);
 
-      user.find({ username: req.body.username }, (err, data) => {
+        console.log(email);
 
-        if (data.length == 0) {
+        // Creating a new User Object
+        const newUser = new User({
+          username,
+          email,
+          password: await User.encryptPassword(password),
+          sintomas: [],
+          diagnostico: "Sin Diagnostico",
+        });
 
-          let User = new user({
-            username: req.body.username,
-            password: req.body.password
-          });
-          User.save((err, data) => {
-            if (err) {
-              res.status(400).json({
-                errorMessage: err,
-                status: false
-              });
-            } else {
-              res.status(200).json({
-                status: true,
-                title: 'Registered Successfully.'
-              });
-            }
-          });
-
+        console.log(newUser);
+        // checking for roles
+        if (req.body.roles) {
+          const foundRoles = await Role.find({ name: { $in: roles } });
+          newUser.roles = foundRoles.map((role) => role._id);
         } else {
-          res.status(400).json({
-            errorMessage: `UserName ${req.body.username} Already Exist!`,
-            status: false
-          });
+          const role = await Role.findOne({ name: "user" });
+          newUser.roles = [role._id];
         }
 
-      });
-
-    } else {
-      res.status(400).json({
-        errorMessage: 'Add proper parameter first!',
-        status: false
-      });
-    }
-  } catch (e) {
-    res.status(400).json({
-      errorMessage: 'Something went wrong!',
-      status: false
+        // Saving the User Object in Mongodb
+        await newUser.save((err, user) => {
+          if (err) {
+            console.log('Save error', err);
+            return res.status(401).json({
+              errors: (err)
+            });
+          } else {
+            return res.json({
+              success: true,
+              message: user,
+              message: 'Signup success'
+            });
+          }
+        });
+      }
+    });
+  } else {
+    return res.json({
+      message: 'error happening please try again'
     });
   }
+};
+
+//const client = new OAuth2Client(process.env.GOOGLE_CLIENT);
+
+
+
+
+
+export const googleController = async (req, res) => {
+  const { idToken } = req.body;
+  console.log(idToken)
+
+  await client
+    .verifyIdToken({ idToken: idToken, audience: process.env.GOOGLE_CLIENT })
+    .then(response => {
+      console.log('GOOGLE LOGIN RESPONSE', response)
+      const { email_verified, name, email } = response.payload;
+      if (email_verified) {
+        User.findOne({ email }).exec(async (err, user) => {
+          if (user) {
+            const token = jwt.sign({ _id: user._id }, process.env.GOOGLE_SECRET, {
+              expiresIn: '7d'
+            });
+            const { _id, email, username, roles, diagnostico, sintomas } = user;
+            return res.json({
+              token,
+              user: { _id, email, username, roles, diagnostico, sintomas }
+            });
+          } else {
+            let password = email + process.env.GOOGLE_SECRET;
+            user = new User({
+              username:name, email:email, password:password, sintomas: [],
+              diagnostico: "Sin Diagnostico",
+            });
+            if (req.body.roles) {
+              const foundRoles = await Role.find({ name: { $in: roles } });
+              user.roles = foundRoles.map((role) => role._id);
+            } else {
+              const role = await Role.findOne({ name: "user" });
+              user.roles = [role._id];
+            }
+
+            user.save((err, data) => {
+              if (err) {
+                console.log('ERROR GOOGLE LOGIN ON USER SAVE', err);
+                return res.status(400).json({
+                  error: 'User signup failed with google'
+                });
+              }
+              const token = jwt.sign(
+                { _id: data._id },
+                process.env.GOOGLE_SECRET,
+                { expiresIn: '7d' }
+              );
+              const { _id, email, username, roles, diagnostico, sintomas } = data;
+              return res.json({
+                token,
+                user: { _id, email, name, roles, diagnostico, sintomas }
+              });
+            });
+          }
+        });
+      } else {
+        return res.status(400).json({
+          error: 'Google login failed. Try again'
+        });
+      }
+
+    });
 };

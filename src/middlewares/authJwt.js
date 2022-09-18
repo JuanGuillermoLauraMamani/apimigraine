@@ -21,6 +21,7 @@ export const verifyToken = async (req, res, next) => {
   }
 };
 
+
 export const isDoctor = async (req, res, next) => {
   try {
     const user = await User.findById(req.userId);

@@ -207,13 +207,18 @@ export const googleController = async (req, res) => {
       if (email_verified) {
         User.findOne({ email }).exec(async (err, user) => {
           if (user) {
-            const token = jwt.sign({ _id: user._id }, process.env.GOOGLE_SECRET, {
+            const token = jwt.sign({ id: user._id }, process.env.GOOGLE_SECRET, {
               expiresIn: '7d'
             });
             const { _id, email, username, roles, diagnostico, sintomas } = user;
             return res.json({
               token,
-              user: { id:_id, email, username, roles, diagnostico, sintomas }
+              id:_id, 
+              email, 
+              username, 
+              roles, 
+              diagnostico, 
+              sintomas 
             });
           } else {
             let password = email + process.env.GOOGLE_SECRET;
@@ -237,7 +242,7 @@ export const googleController = async (req, res) => {
                 });
               }
               const token = jwt.sign(
-                { id: data._id },
+                { id: data.id },
                 process.env.GOOGLE_SECRET,
                 { expiresIn: '7d' }
               );

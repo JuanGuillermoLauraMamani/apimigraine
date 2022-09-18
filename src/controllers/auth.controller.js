@@ -241,17 +241,19 @@ export const googleController = async (req, res) => {
                 process.env.GOOGLE_SECRET,
                 { expiresIn: '7d' }
               );
+
+              
               const { _id, email, username, roles, diagnostico, sintomas } = data;
               return res.json({
                 token,
-                user: { 
-                  id:_id, 
-                  email, 
-                  name, 
-                  roles, 
-                  diagnostico, 
-                  sintomas }
+                id:_id, 
+                email, 
+                name, 
+                roles, 
+                diagnostico, 
+                sintomas 
               });
+
             });
           }
         });
